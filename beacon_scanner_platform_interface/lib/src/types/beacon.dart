@@ -37,7 +37,7 @@ class Beacon {
     rssi: json['rssi'] as int,
     txPower: json['txPower'] as int?,
     accuracy: json['accuracy'] as double,
-    proximity: Proximity.values.firstWhere((e) => describeEnum(e) == json['proximity'], orElse: () => Proximity.unknown),
+    proximity: Proximity.values.firstWhere((e) => e.name == json['proximity'], orElse: () => Proximity.unknown),
   );
 
   /// Serialize current instance object into [Map].
@@ -47,7 +47,7 @@ class Beacon {
         'minor': id.minorId,
         'rssi': rssi,
         'accuracy': accuracy,
-        'proximity': describeEnum(proximity),
+        'proximity': proximity.name,
         'txPower': txPower,
         'macAddress': macAddress,
       };

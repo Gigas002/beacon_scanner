@@ -15,8 +15,8 @@ class ScanResult {
 
   Map<String, dynamic> toJson() {
     return {
-      'region': this.region,
-      'beacons': this.beacons.map((e) => e.toJson()).toList(),
+      'region': region,
+      'beacons': beacons.map((e) => e.toJson()).toList(),
     };
   }
 

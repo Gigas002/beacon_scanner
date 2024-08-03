@@ -5,7 +5,6 @@ version: 0.0.4
 
 environment:
   sdk: ">=2.18.0 <4.0.0"
-  flutter: ">=3.3.0"
 
 flutter:
   plugin:
@@ -19,7 +18,8 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  beacon_scanner_platform_interface: ^0.0.3
+  beacon_scanner_platform_interface:
+    path: ../beacon_scanner_platform_interface
 
 dev_dependencies:
   flutter_test:

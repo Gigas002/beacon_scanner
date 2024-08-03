@@ -29,15 +29,15 @@ class MonitoringResult {
 
   /// Constructor for deserialize dynamic json into [MonitoringResult].
   factory MonitoringResult.fromJson(dynamic json) => MonitoringResult(
-        monitoringEventType: MonitoringEventType.values.firstWhere((e) => describeEnum(e) == json['event']),
-        monitoringState: MonitoringState.values.firstWhere((e) => describeEnum(e) == json['state'], orElse: () => MonitoringState.unknown),
+        monitoringEventType: MonitoringEventType.values.firstWhere((e) => e.name == json['event']),
+        monitoringState: MonitoringState.values.firstWhere((e) => e.name == json['state'], orElse: () => MonitoringState.unknown),
         region: Region.fromJson(json['region']),
       );
 
   /// Return the serializable of this object into [Map].
   Map<String, dynamic> toJson() => <String, dynamic>{
-    'event': describeEnum(monitoringEventType),
+    'event': monitoringEventType.name,
     'region': region.toJson(),
-    'state': describeEnum(monitoringState),
+    'state': monitoringState.name,
   };
 }
