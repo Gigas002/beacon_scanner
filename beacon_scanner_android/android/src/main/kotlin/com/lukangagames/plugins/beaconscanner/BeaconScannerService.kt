@@ -1,22 +1,19 @@
 package com.lukangagames.plugins.beaconscanner
 
 import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Handler
 import android.os.Looper
 import android.os.RemoteException
 import android.util.Log
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
-import org.altbeacon.beacon.BeaconConsumer
 import org.altbeacon.beacon.MonitorNotifier
 import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
 
-internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Context) {
-    private val plugin: BeaconScannerPlugin
-    private val context: Context
+internal class BeaconScannerService(private val plugin: BeaconScannerPlugin,
+                                    private val context: Context
+) {
     private var eventSinkRanging: MainThreadEventSink? = null
     private var eventSinkMonitoring: MainThreadEventSink? = null
     private var regionRanging: MutableList<Region>? = null
@@ -69,11 +66,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
             return
         }
         eventSinkRanging = MainThreadEventSink(eventSink)
-        if (plugin.getBeaconManager() != null && !plugin.getBeaconManager()!!.isBound(beaconConsumer)) {
-            plugin.getBeaconManager()!!.bind(beaconConsumer)
-        } else {
-            startRanging()
-        }
+        startRanging()
     }
 
     fun startRanging() {
@@ -86,7 +79,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
                 plugin.getBeaconManager()!!.removeAllRangeNotifiers()
                 plugin.getBeaconManager()!!.addRangeNotifier(rangeNotifier)
                 for (region in regionRanging!!) {
-                    plugin.getBeaconManager()!!.startRangingBeaconsInRegion(region)
+                    plugin.getBeaconManager()!!.startRangingBeacons(region)
                 }
             }
         } catch (e: RemoteException) {
@@ -100,7 +93,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
         if (regionRanging != null && regionRanging!!.isNotEmpty()) {
             try {
                 for (region in regionRanging!!) {
-                    plugin.getBeaconManager()!!.stopRangingBeaconsInRegion(region)
+                    plugin.getBeaconManager()!!.stopRangingBeacons(region)
                 }
                 plugin.getBeaconManager()!!.removeRangeNotifier(rangeNotifier)
             } catch (ignored: RemoteException) {
@@ -146,11 +139,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
             return
         }
         eventSinkMonitoring = MainThreadEventSink(eventSink)
-        if (plugin.getBeaconManager() != null && !plugin.getBeaconManager()!!.isBound(beaconConsumer)) {
-            plugin.getBeaconManager()!!.bind(beaconConsumer)
-        } else {
-            startMonitoring()
-        }
+        startMonitoring()
     }
 
     fun startMonitoring() {
@@ -163,7 +152,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
             plugin.getBeaconManager()!!.addMonitorNotifier(monitorNotifier)
             for (region in regionMonitoring!!) {
                 if(region != null) {
-                    plugin.getBeaconManager()!!.startMonitoringBeaconsInRegion(region)
+                    plugin.getBeaconManager()!!.startMonitoring(region)
                 }
             }
         } catch (e: RemoteException) {
@@ -178,7 +167,7 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
             try {
                 for (region in regionMonitoring!!) {
                     if(region != null) {
-                        plugin.getBeaconManager()!!.stopMonitoringBeaconsInRegion(region)
+                        plugin.getBeaconManager()!!.stopMonitoring(region)
                     }
                 }
                 plugin.getBeaconManager()!!.removeMonitorNotifier(monitorNotifier)
@@ -216,34 +205,6 @@ internal class BeaconScannerService(plugin: BeaconScannerPlugin, context: Contex
                 eventSinkMonitoring!!.success(map)
             }
         }
-    }
-    val beaconConsumer: BeaconConsumer = object : BeaconConsumer {
-        override fun onBeaconServiceConnect() {
-            if (plugin.flutterResult != null) {
-                plugin.flutterResult!!.success(true)
-                plugin.flutterResult = null
-            } else {
-                startRanging()
-                startMonitoring()
-            }
-        }
-
-        override fun getApplicationContext(): Context {
-            return context
-        }
-
-        override fun unbindService(serviceConnection: ServiceConnection) {
-            applicationContext.unbindService(serviceConnection)
-        }
-
-        override fun bindService(intent: Intent, serviceConnection: ServiceConnection, i: Int): Boolean {
-            return applicationContext.bindService(intent, serviceConnection, i)
-        }
-    }
-
-    init {
-        this.plugin = plugin
-        this.context = context
     }
 
     companion object {

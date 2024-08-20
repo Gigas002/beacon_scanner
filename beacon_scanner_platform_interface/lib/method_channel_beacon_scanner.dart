@@ -71,9 +71,7 @@ class MethodChannelBeaconScanner extends BeaconScannerPlatform {
 
   @override
   Stream<BluetoothState> bluetoothStateChanged() {
-    if (_onBluetoothState == null) {
-      _onBluetoothState = _bluetoothStateChangedChannel.receiveBroadcastStream().map((dynamic event) => BluetoothState.parse(event));
-    }
+    _onBluetoothState ??= _bluetoothStateChangedChannel.receiveBroadcastStream().map((dynamic event) => BluetoothState.parse(event));
     return _onBluetoothState!;
   }
 
@@ -89,9 +87,7 @@ class MethodChannelBeaconScanner extends BeaconScannerPlatform {
 
   @override
   Stream<AuthorizationStatus> authorizationStatusChanged() {
-    if (_onAuthorizationStatus == null) {
-      _onAuthorizationStatus = _authorizationStatusChangedChannel.receiveBroadcastStream().map((dynamic event) => AuthorizationStatus.parse(event));
-    }
+    _onAuthorizationStatus ??= _authorizationStatusChangedChannel.receiveBroadcastStream().map((dynamic event) => AuthorizationStatus.parse(event));
     return _onAuthorizationStatus!;
   }
 

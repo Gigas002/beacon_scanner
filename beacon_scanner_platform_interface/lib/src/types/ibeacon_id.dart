@@ -2,8 +2,11 @@ import 'package:meta/meta.dart';
 
 @immutable
 class IBeaconId {
+  // ignore: constant_identifier_names
   static const String NOT_DEFINED_UUID = '';
+  // ignore: constant_identifier_names
   static const int NOT_DEFINED_MAJOR_ID = -1;
+  // ignore: constant_identifier_names
   static const int NOT_DEFINED_MINOR_ID = -1;
 
   /// Empty = not defined
@@ -33,9 +36,9 @@ class IBeaconId {
 
   Map<String, dynamic> toJson() {
     return {
-      'proximityUUID': this.proximityUUID,
-      if (this.majorId != NOT_DEFINED_MAJOR_ID) 'major': this.majorId,
-      if (this.minorId != NOT_DEFINED_MINOR_ID) 'minor': this.minorId,
+      'proximityUUID': proximityUUID,
+      if (majorId != NOT_DEFINED_MAJOR_ID) 'major': majorId,
+      if (minorId != NOT_DEFINED_MINOR_ID) 'minor': minorId,
     };
   }
 

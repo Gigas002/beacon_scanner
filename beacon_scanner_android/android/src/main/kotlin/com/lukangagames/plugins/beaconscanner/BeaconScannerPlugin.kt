@@ -125,14 +125,7 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Req
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "initialize" -> {
-                if (beaconManager != null && !beaconManager!!.isBound(beaconScanner!!.beaconConsumer)) {
-                    flutterResult = result
-                    beaconManager!!.bind(beaconScanner!!.beaconConsumer)
-                } else {
-                    result.success(true)
-                }
-            }
+            "initialize" -> result.success(true)
 
             "initializeAndCheckScanning" -> initializeAndCheck(result)
 
@@ -142,9 +135,6 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Req
                     beaconManager!!.removeAllRangeNotifiers()
                     beaconScanner!!.stopMonitoring()
                     beaconManager!!.removeAllMonitorNotifiers()
-                    if (beaconManager!!.isBound(beaconScanner!!.beaconConsumer)) {
-                        beaconManager!!.unbind(beaconScanner!!.beaconConsumer)
-                    }
                 }
                 result.success(true)
             }
@@ -259,11 +249,6 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Req
         }
         if (!platform!!.checkLocationServicesIfEnabled()) {
             platform!!.openLocationSettings()
-            return
-        }
-        if (beaconManager != null && !beaconManager!!.isBound(beaconScanner!!.beaconConsumer)) {
-            flutterResult = result
-            beaconManager!!.bind(beaconScanner!!.beaconConsumer)
             return
         }
         result.success(true)

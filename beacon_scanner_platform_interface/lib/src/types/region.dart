@@ -29,8 +29,8 @@ class Region {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'identifier': this.identifier,
-      if (beaconId != null) ...this.beaconId!.toJson(),
+      'identifier': identifier,
+      if (beaconId != null) ...beaconId!.toJson(),
     };
   }
 
