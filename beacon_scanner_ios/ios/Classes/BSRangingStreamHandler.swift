@@ -1,25 +1,24 @@
 import Foundation
 import Flutter
-import BeaconScannerPlugin
 
 class BSRangingStreamHandler: NSObject, FlutterStreamHandler {
-    private var instance: BeaconScannerPlugin?
+    var instance: BeaconScannerPlugin
 
-    init(instance: BeaconScannerPlugin) {
+    init(beaconScannerPlugin instance: BeaconScannerPlugin) {
         self.instance = instance
         super.init()
     }
 
-    // MARK: - Flutter Stream Handler
+    // MARK: - FlutterStreamHandler Methods
 
-    func onCancel(arguments: Any?) -> FlutterError? {
-        instance?.stopRangingBeacon()
+    func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        instance.stopRangingBeacon()
         return nil
     }
 
-    func onListen(arguments: Any?, eventSink: @escaping FlutterEventSink) -> FlutterError? {
-        instance?.flutterEventSinkRanging = eventSink
-        instance?.startRangingBeacon(withCall: arguments)
+    func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        instance.flutterEventSinkRanging = events
+        instance.startRangingBeacon(withCall: arguments)
         return nil
     }
 }

@@ -1,33 +1,27 @@
-import CoreBluetooth
-import Flutter
 import Foundation
+import Flutter
+import CoreBluetooth
 
 class BSBluetoothStateHandler: NSObject, FlutterStreamHandler {
-    var instance: BeaconScannerPlugin?
+    var instance: BeaconScannerPlugin
 
-    init(beaconScannerPlugin instance: BeaconScannerPlugin?) {
-        super.init()
+    init(beaconScannerPlugin instance: BeaconScannerPlugin) {
         self.instance = instance
+        super.init()
     }
 
-    ///------------------------------------------------------------
-    // MARK: - Flutter Stream Handler
-    ///------------------------------------------------------------
+    // MARK: - FlutterStreamHandler Methods
 
     func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        if instance {
-            instance.flutterEventSinkBluetooth = nil
-        }
+        instance.flutterEventSinkBluetooth = nil
         return nil
     }
 
-    func onListen(withArguments arguments: Any?, eventSink events: FlutterEventSink) -> FlutterError? {
-        // initialize central manager if it itsn't
+    func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        // Initialize central manager if it isn't already initialized
         instance.initializeCentralManager()
 
-        if instance {
-            instance.flutterEventSinkBluetooth = events
-        }
+        instance.flutterEventSinkBluetooth = events
 
         return nil
     }

@@ -2,9 +2,8 @@ import Foundation
 import CoreLocation
 
 class BSUtils : NSObject {
-    
-    static func dictionaryFromCLBeacon(_ beacon: CLBeacon) -> [String: Any] {
-        var proximity: String
+    static func dictionary(from beacon: CLBeacon) -> [String: Any] {
+        let proximity: String
         switch beacon.proximity {
         case .unknown:
             proximity = "unknown"
@@ -29,10 +28,10 @@ class BSUtils : NSObject {
             "proximity": proximity
         ]
     }
-    
-    static func dictionaryFromCLBeaconRegion(_ region: CLBeaconRegion) -> [String: Any] {
-        let major: Any = region.major ?? NSNull()
-        let minor: Any = region.minor ?? NSNull()
+
+    static func dictionary(from region: CLBeaconRegion) -> [String: Any] {
+        let major = region.major ?? NSNull()
+        let minor = region.minor ?? NSNull()
         
         return [
             "identifier": region.identifier,
@@ -41,21 +40,21 @@ class BSUtils : NSObject {
             "minor": minor
         ]
     }
-    
-    static func regionFromDictionary(_ dict: [String: Any]) -> CLBeaconRegion? {
+
+    static func region(from dict: [String: Any]) -> CLBeaconRegion? {
         guard let identifier = dict["identifier"] as? String,
               let proximityUUIDString = dict["proximityUUID"] as? String,
               let proximityUUID = UUID(uuidString: proximityUUIDString) else {
             return nil
         }
-        
+
         let major = dict["major"] as? NSNumber
         let minor = dict["minor"] as? NSNumber
-        
+
         if let major = major, let minor = minor {
-            return CLBeaconRegion(uuid: proximityUUID, major: major.intValue, minor: minor.intValue, identifier: identifier)
+            return CLBeaconRegion(uuid: proximityUUID, major: major.uint16Value, minor: minor.uint16Value, identifier: identifier)
         } else if let major = major {
-            return CLBeaconRegion(uuid: proximityUUID, major: major.intValue, identifier: identifier)
+            return CLBeaconRegion(uuid: proximityUUID, major: major.uint16Value, identifier: identifier)
         } else {
             return CLBeaconRegion(uuid: proximityUUID, identifier: identifier)
         }
