@@ -18,7 +18,7 @@ class BSRangingStreamHandler: NSObject, FlutterStreamHandler {
 
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         instance.flutterEventSinkRanging = events
-        instance.startRangingBeacon(withCall: arguments)
+        instance.startRangingBeacon(with: arguments)
         return nil
     }
 }

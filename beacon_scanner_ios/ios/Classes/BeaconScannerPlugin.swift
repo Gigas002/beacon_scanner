@@ -2,7 +2,7 @@ import Flutter
 import CoreBluetooth
 import CoreLocation
 
-class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, CBCentralManagerDelegate, CBPeripheralManagerDelegate {
+@objc public class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, CBCentralManagerDelegate, CBPeripheralManagerDelegate {
     var flutterEventSinkRanging: FlutterEventSink?
     var flutterEventSinkMonitoring: FlutterEventSink?
     var flutterEventSinkBluetooth: FlutterEventSink?
@@ -14,8 +14,8 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
     var locationManager: CLLocationManager?
     var bluetoothManager: CBCentralManager?
     var peripheralManager: CBPeripheralManager?
-    var regionRanging: [Any] = []
-    var regionMonitoring: [Any] = []
+    var regionRanging: [CLBeaconRegion] = []
+    var regionMonitoring: [CLBeaconRegion] = []
     var beaconPeripheralData: [String: Any]?
 
     var rangingHandler: BSRangingStreamHandler?
@@ -28,7 +28,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
     var flutterBroadcastResult: FlutterResult?
 
     // Registration of the plugin
-    static func register(with registrar: FlutterPluginRegistrar) {
+    public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "plugins.lukangagames.com/beacon_scanner_android", binaryMessenger: registrar.messenger())
         let instance = BeaconScannerPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
@@ -56,7 +56,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
         self.defaultLocationAuthorizationType = .authorizedAlways
     }
 
-    func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
             case "initialize":
                 initializeLocationManager()
@@ -64,7 +64,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
                 result(true)
 
             case "initializeAndCheckScanning":
-                initializeWithResult(result)
+                initialize(with: result)
 
             case "setLocationAuthorizationTypeDefault":
                 if let argumentAsString = call.arguments as? String {
@@ -213,7 +213,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
             measuredPower = txPower
         }
         
-        if let region = BSUtils.region(fromDictionary: dict) {
+        if let region = BSUtils.region(from: dict) {
             self.shouldStartAdvertise = true
             self.beaconPeripheralData = region.peripheralData(withMeasuredPower: measuredPower) as? [String: Any]
             self.peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
@@ -223,17 +223,17 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
     // MARK: - Flutter Beacon Ranging
 
     func startRangingBeacon(with arguments: Any?) {
-        if let regionRanging = self.regionRanging {
-            regionRanging.removeAllObjects()
+        if self.regionRanging != nil {
+            regionRanging.removeAll()
         } else {
-            self.regionRanging = NSMutableArray()
+            self.regionRanging = []
         }
 
         guard let array = arguments as? [[String: Any]] else { return }
 
         for dict in array {
-            if let region = BSUtils.region(fromDictionary: dict) {
-                self.regionRanging?.add(region)
+            if let region = BSUtils.region(from: dict) {
+                self.regionRanging.append(region)
             }
         }
 
@@ -253,17 +253,17 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
     // MARK: - Flutter Beacon Monitoring
 
     func startMonitoringBeacon(with arguments: Any?) {
-        if let regionMonitoring = self.regionMonitoring {
-            regionMonitoring.removeAllObjects()
+        if self.regionMonitoring != nil {
+            regionMonitoring.removeAll()
         } else {
-            self.regionMonitoring = NSMutableArray()
+            self.regionMonitoring = []
         }
 
         guard let array = arguments as? [[String: Any]] else { return }
 
         for dict in array {
-            if let region = BSUtils.region(fromDictionary: dict) {
-                self.regionMonitoring?.add(region)
+            if let region = BSUtils.region(from: dict) {
+                self.regionMonitoring.append(region)
             }
         }
 
@@ -291,7 +291,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
 
     // MARK: - Bluetooth Manager
 
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         var message: String? = nil
 
         switch central.state {
@@ -383,15 +383,15 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
     func requestDefaultLocationManagerAuthorization() {
         switch self.defaultLocationAuthorizationType {
             case .authorizedWhenInUse:
-                self.locationManager.requestWhenInUseAuthorization()
+                self.locationManager!.requestWhenInUseAuthorization()
             case .authorizedAlways:
                 fallthrough
             default:
-                self.locationManager.requestAlwaysAuthorization()
+                self.locationManager!.requestAlwaysAuthorization()
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         var message: String? = nil
         switch status {
             case .authorizedAlways:
@@ -422,7 +422,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
+    public func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
         if let flutterEventSinkRanging = self.flutterEventSinkRanging {
             let dictRegion = BSUtils.dictionary(from: region)
 
@@ -441,7 +441,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
 
     // MARK: - Location Manager
 
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+    public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         guard let flutterEventSinkMonitoring = self.flutterEventSinkMonitoring else { return }
 
         if let reg = self.regionMonitoring.first(where: { $0.identifier == region.identifier }) {
@@ -453,7 +453,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+    public func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
         guard let flutterEventSinkMonitoring = self.flutterEventSinkMonitoring else { return }
 
         if let reg = self.regionMonitoring.first(where: { $0.identifier == region.identifier }) {
@@ -465,7 +465,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
+    public func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
         guard let flutterEventSinkMonitoring = self.flutterEventSinkMonitoring else { return }
 
         if let reg = self.regionMonitoring.first(where: { $0.identifier == region.identifier }) {
@@ -489,7 +489,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
 
     // MARK: - Peripheral Manager
 
-    func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
+    public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         switch peripheral.state {
             case .poweredOn:
                 if self.shouldStartAdvertise {
@@ -501,7 +501,7 @@ class BeaconScannerPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate, C
         }
     }
 
-    func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
+    public func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
         guard let flutterBroadcastResult = self.flutterBroadcastResult else { return }
 
         if let error = error {

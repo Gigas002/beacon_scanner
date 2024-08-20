@@ -18,7 +18,7 @@ class BSMonitoringStreamHandler: NSObject, FlutterStreamHandler {
 
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         instance.flutterEventSinkMonitoring = events
-        instance.startMonitoringBeacon(withCall: arguments)
+        instance.startMonitoringBeacon(with: arguments)
         return nil
     }
 }
