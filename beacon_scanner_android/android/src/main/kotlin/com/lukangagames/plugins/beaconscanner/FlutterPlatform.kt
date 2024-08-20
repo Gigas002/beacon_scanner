@@ -54,27 +54,17 @@ internal class FlutterPlatform(private val context: Context) {
                 context,
                 Manifest.permission.BLUETOOTH_SCAN
             ) == PackageManager.PERMISSION_GRANTED
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        } else {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
-        } else true
+        }
     }
 
     fun checkLocationServicesIfEnabled(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
-            return locationManager != null && locationManager.isLocationEnabled
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val mode = Settings.Secure.getInt(
-                context.contentResolver, Settings.Secure.LOCATION_MODE,
-                Settings.Secure.LOCATION_MODE_OFF
-            )
-            return mode != Settings.Secure.LOCATION_MODE_OFF
-        }
-        return true
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+        return locationManager != null && locationManager.isLocationEnabled
     }
 
     fun checkBluetoothIfEnabled(): Boolean {

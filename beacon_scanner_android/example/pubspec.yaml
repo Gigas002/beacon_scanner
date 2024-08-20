@@ -1,0 +1,16 @@
+name: beacon_scanner_android_example
+description: "Demonstrates how to use the beacon_scanner_android plugin."
+publish_to: 'none'
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  beacon_scanner_android:
+    path: ../
+
+flutter:
+  uses-material-design: true
