@@ -20,7 +20,7 @@ internal class BeaconScannerService(private val plugin: BeaconScannerPlugin,
     private var regionMonitoring: MutableList<Region?>? = null
 
     // Fixes: https://github.com/flutter/flutter/issues/34993
-    private class MainThreadEventSink internal constructor(private val eventSink: EventSink) : EventSink {
+    private class MainThreadEventSink(private val eventSink: EventSink) : EventSink {
         private val handler: Handler = Handler(Looper.getMainLooper())
 
         override fun success(o: Any?) {

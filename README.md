@@ -4,7 +4,7 @@ This plugin is based on [flutter_beacon](https://pub.dev/packages/flutter_beacon
 This package can be combined with androids foreground services.
 It uses Android AltBeacon and iOS CoreLocation under the hood.
 
-An hybrid iBeacon scanner SDK for Flutter plugin. Supports Android API 18+ and iOS 13+.
+A hybrid iBeacon scanner SDK for Flutter plugin. Supports Android API 31+ and iOS 15+.
 
 Features:
 
@@ -14,25 +14,31 @@ Features:
 
 ## Installation
 
-Add to pubspec.yaml:
+Clone the repo and add to pubspec.yaml:
 
 ```yaml
 dependencies:
-  flutter_beacon: latest
+  beacon_scanner:
+    path: ./beacon_scanner/beacon_scanner
 ```
 
 ### Setup specific for Android
 
-For target SDK version 29+ (Android 10, 11) is necessary to add manually ```ACCESS_FINE_LOCATION```
+For target SDK version 31+ (Android 12) is necessary to add permissions:
 
-``` 
+```xml 
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
 and if you want also background scanning:
-```
+
+```xml
 <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 ```
+
+See: https://altbeacon.github.io/android-beacon-library/requesting_permission.html
 
 ### Setup specific for iOS
 
