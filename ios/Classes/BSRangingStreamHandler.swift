@@ -2,6 +2,8 @@ import Foundation
 import Flutter
 
 class BSRangingStreamHandler: NSObject, FlutterStreamHandler {
+    static let EVENT_CHANNEL = "beacon_scanner_event_ranging"
+
     var instance: BeaconScannerPlugin
 
     init(beaconScannerPlugin instance: BeaconScannerPlugin) {
