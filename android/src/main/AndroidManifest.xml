@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <application>
+      <service
+        android:name=".RangingService"
+        android:enabled="true"
+        android:exported="false" />
+      <service
+        android:name=".MonitoringService"
+        android:enabled="true"
+        android:exported="false" />
+    </application>
+</manifest>
