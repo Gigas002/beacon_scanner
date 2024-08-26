@@ -1,6 +1,7 @@
 name: beacon_scanner_example
 description: "Demonstrates how to use the beacon_scanner plugin."
 publish_to: 'none'
+version: 0.1.0
 
 environment:
   sdk: ^3.5.1
