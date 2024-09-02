@@ -11,11 +11,17 @@ import org.altbeacon.beacon.Region
 import java.util.Locale
 
 internal object Utils {
-    fun parseState(state: Int): String {
-        return if (state == MonitorNotifier.INSIDE) "INSIDE" else if (state == MonitorNotifier.OUTSIDE) "OUTSIDE" else "UNKNOWN"
+    private val TAG = Utils::class.java.simpleName
+
+    fun parseState(state: Int): String = when (state) {
+        MonitorNotifier.INSIDE -> "inside"
+        MonitorNotifier.OUTSIDE -> "outside"
+        else -> "unknown"
     }
 
     fun requestPermissions(activityPluginBinding: ActivityPluginBinding) {
+        Log.d(TAG, "requestPermissions: started")
+
         ActivityCompat.requestPermissions(
             activityPluginBinding.activity, arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -27,113 +33,77 @@ internal object Utils {
                 Manifest.permission.FOREGROUND_SERVICE,
             ), 1234
         )
+
+        Log.d(TAG, "requestPermissions: ended")
     }
 
-    fun beaconsToArray(beacons: List<Beacon>?): List<Map<String, Any>> {
-        if (beacons == null) {
-            return ArrayList()
-        }
-        val list: MutableList<Map<String, Any>> = ArrayList()
-        for (beacon in beacons) {
-            val map = beaconToMap(beacon)
-            list.add(map)
-        }
-        return list
+    fun beaconsToArray(beacons: List<Beacon>?): List<Map<String, Any>> =
+        beacons?.map { beaconToMap(it) } ?: emptyList()
+
+    private fun beaconToMap(beacon: Beacon): Map<String, Any> =
+        mapOf(
+            "proximityUUID" to beacon.id1.toString().uppercase(Locale.getDefault()),
+            "major" to beacon.id2.toInt(),
+            "minor" to beacon.id3.toInt(),
+            "rssi" to beacon.rssi,
+            "txPower" to beacon.txPower,
+            "accuracy" to beacon.distance,
+            "macAddress" to beacon.bluetoothAddress,
+            "proximity" to rssiToProximity(beacon.rssi)
+        )
+
+    private fun rssiToProximity(rssi: Int): String = when {
+        rssi <= 55 -> "near"
+        rssi <= 75 -> "immediate"
+        rssi <= 100 -> "far"
+        else -> "undefined"
     }
 
-    private fun beaconToMap(beacon: Beacon): Map<String, Any> {
-        val map: MutableMap<String, Any> = HashMap()
-        map["proximityUUID"] = beacon.id1.toString().uppercase(Locale.getDefault())
-        map["major"] = beacon.id2.toInt()
-        map["minor"] = beacon.id3.toInt()
-        map["rssi"] = beacon.rssi
-        map["txPower"] = beacon.txPower
-        map["accuracy"] = beacon.distance
-        map["macAddress"] = beacon.bluetoothAddress
-        map["proximity"] = rssiToProximity(beacon.rssi)
-        return map
-    }
-
-    private fun rssiToProximity(rssi: Int): String {
-        if (rssi <= 55) {
-            return "near"
-        }
-
-        if (rssi <= 75) {
-           return "immediate"
-        }
-
-        if(rssi <= 100) {
-            return "far"
-        }
-
-        return "undefined"
-    }
-
-    fun regionToMap(region: Region): Map<String, Any> {
-        val map: MutableMap<String, Any> = HashMap()
-        map["identifier"] = region.uniqueId
-        if (region.id1 != null) {
-            map["proximityUUID"] = region.id1.toString()
-        }
-        if (region.id2 != null) {
-            map["major"] = region.id2.toInt()
-        }
-        if (region.id3 != null) {
-            map["minor"] = region.id3.toInt()
-        }
-        return map
+    fun regionToMap(region: Region): Map<String, Any> = buildMap {
+        put("identifier", region.uniqueId)
+        region.id1?.let { put("proximityUUID", it.toString()) }
+        region.id2?.let { put("major", it.toInt()) }
+        region.id3?.let { put("minor", it.toInt()) }
     }
 
     fun regionFromMap(map: Map<*, *>): Region? {
-        return try {
-            var identifier = ""
-            val identifiers: MutableList<Identifier> = ArrayList()
-            val objectIdentifier = map["identifier"]
-            if (objectIdentifier is String) {
-                identifier = objectIdentifier.toString()
+        Log.d(TAG, "regionFromMap: started")
+
+        var region: Region? = null
+
+        try {
+            val identifier = (map["identifier"] as? String) ?: ""
+            val identifiers = mutableListOf<Identifier>()
+
+            (map["proximityUUID"] as? String)?.let {
+                identifiers.add(Identifier.parse(it))
             }
-            val proximityUUID = map["proximityUUID"]
-            if (proximityUUID is String) {
-                identifiers.add(Identifier.parse(proximityUUID as String?))
+            (map["major"] as? Int)?.let {
+                identifiers.add(Identifier.fromInt(it))
             }
-            val major = map["major"]
-            if (major is Int) {
-                identifiers.add(Identifier.fromInt((major as Int?)!!))
+            (map["minor"] as? Int)?.let {
+                identifiers.add(Identifier.fromInt(it))
             }
-            val minor = map["minor"]
-            if (minor is Int) {
-                identifiers.add(Identifier.fromInt((minor as Int?)!!))
-            }
-            Region(identifier, identifiers)
-        } catch (e: IllegalArgumentException) {
-            Log.e("REGION", "Error : $e")
-            null
+
+            region = Region(identifier, identifiers)
         }
+        catch (e: IllegalArgumentException) {
+            Log.e(TAG, "regionFromMap: error: ${e.message}", e)
+        }
+
+        Log.d(TAG, "regionFromMap: ended")
+
+        return region
     }
 
     fun beaconFromMap(map: Map<*, *>): Beacon {
-        val builder = Beacon.Builder()
-        val proximityUUID = map["proximityUUID"]
-        if (proximityUUID is String) {
-            builder.setId1(proximityUUID as String?)
-        }
-        val major = map["major"]
-        if (major is Int) {
-            builder.setId2(major.toString())
-        }
-        val minor = map["minor"]
-        if (minor is Int) {
-            builder.setId3(minor.toString())
-        }
-        val txPower = map["txPower"]
-        if (txPower is Int) {
-            builder.setTxPower((txPower as Int?)!!)
-        } else {
-            builder.setTxPower(-59)
-        }
-        builder.setDataFields(listOf(0L))
-        builder.setManufacturer(0x004c)
-        return builder.build()
+        return Beacon.Builder().apply {
+            (map["proximityUUID"] as? String)?.let { setId1(it) }
+            (map["major"] as? Int)?.let { setId2(it.toString()) }
+            (map["minor"] as? Int)?.let { setId3(it.toString()) }
+            (map["txPower"] as? Int)?.let { setTxPower(it) } ?: setTxPower(-59)
+            setDataFields(listOf(0L))
+            setManufacturer(0x004c)
+        }.build()
     }
 }

@@ -4,7 +4,9 @@ This plugin is based on [flutter_beacon](https://pub.dev/packages/flutter_beacon
 This package can be combined with androids foreground services.
 It uses Android AltBeacon and iOS CoreLocation under the hood.
 
-A hybrid iBeacon scanner SDK for Flutter plugin. Supports Android API 31+ and iOS 15+.
+A hybrid iBeacon scanner SDK for Flutter plugin. Supports Android API 31+ and iOS 17+.
+
+See the example directory for both ios and android simple usage example and permissions initialization in project files.
 
 Features:
 
@@ -19,7 +21,7 @@ Clone the repo and add to pubspec.yaml:
 ```yaml
 dependencies:
   beacon_scanner:
-    path: ./beacon_scanner/beacon_scanner
+    path: ./beacon_scanner
 ```
 
 ### Setup specific for Android
@@ -42,7 +44,7 @@ See: https://altbeacon.github.io/android-beacon-library/requesting_permission.ht
 
 ### Setup specific for iOS
 
-Works only for 13+.
+Works only with 17+.
 In order to use beacons related features, apps are required to ask the location permission. It's a two step process:
 
 1. Declare the permission the app requires in configuration files
@@ -61,14 +63,9 @@ Permission must be declared in `ios/Runner/Info.plist`:
   <key>NSLocationWhenInUseUsageDescription</key>
   <string>Reason why app needs location</string>
   <!-- Always -->
-  <!-- for iOS 11 + -->
   <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
   <string>Reason why app needs location</string>
-  <!-- for iOS 9/10 -->
-  <key>NSLocationAlwaysUsageDescription</key>
-  <string>Reason why app needs location</string>
   <!-- Bluetooth Privacy -->
-  <!-- for iOS 13 + -->
   <key>NSBluetoothAlwaysUsageDescription</key>
   <string>Reason why app needs bluetooth</string>
 </dict>
@@ -92,8 +89,7 @@ Ranging APIs are designed as reactive streams.
 final BeaconScanner beaconScanner = BeaconScanner.instance;
 
 try {
-  // false - if you want to manage manual checking about the required permissions
-  await beaconScanner.initialize(true);
+  await beaconScanner.initialize();
 } on PlatformException catch(e) {
   // library failed to initialize, check code and message
 }
@@ -150,4 +146,3 @@ _streamMonitoring = beaconScanner.monitoring(regions).listen((MonitoringResult r
 // to stop monitoring beacons
 _streamMonitoring.cancel();
 ```
-

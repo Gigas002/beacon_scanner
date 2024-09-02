@@ -12,17 +12,13 @@ class RangingResult {
     required this.beacons,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'region': region,
-      'beacons': beacons.map((e) => e.toJson()).toList(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'region': region,
+        'beacons': beacons.map((e) => e.toJson()).toList(),
+      };
 
-  factory RangingResult.fromJson(dynamic json) {
-    return RangingResult(
-      region: Region.fromJson(json['region']),
-      beacons: (json['beacons'] as List<dynamic>).map((e) => Beacon.fromJson(e)).toList(),
-    );
-  }
+  factory RangingResult.fromJson(dynamic json) => RangingResult(
+        region: Region.fromJson(json['region']),
+        beacons: (json['beacons'] as List<dynamic>).map((e) => Beacon.fromJson(e)).toList(),
+      );
 }

@@ -13,5 +13,10 @@ dependencies:
   beacon_scanner:
     path: ../
 
+  logging: any
+
+dev_dependencies:
+  flutter_lints: any
+
 flutter:
   uses-material-design: true

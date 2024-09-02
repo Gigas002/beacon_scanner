@@ -3,10 +3,10 @@
       <service
         android:name=".RangingService"
         android:enabled="true"
-        android:exported="false" />
+        android:exported="true" />
       <service
         android:name=".MonitoringService"
         android:enabled="true"
-        android:exported="false" />
+        android:exported="true" />
     </application>
 </manifest>
