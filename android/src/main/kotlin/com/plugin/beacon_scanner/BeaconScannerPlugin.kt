@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.os.RemoteException
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -52,30 +51,46 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var isMonitoringServiceBound = false
     private val rangingServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+            Log.d(TAG, "rangingServiceConnection.onServiceConnected: started")
+
             val binder = service as? RangingService.LocalBinder
             rangingService = binder?.getService()
 
-            eventChannelRanging.setStreamHandler(rangingService?.rangingStreamHandler)
+            eventChannelRanging.setStreamHandler(rangingService?.streamHandler)
             isRangingServiceBound = true
+
+            Log.d(TAG, "rangingServiceConnection.onServiceConnected: ended")
         }
 
         override fun onServiceDisconnected(className: ComponentName?) {
+            Log.d(TAG, "rangingServiceConnection.onServiceDisconnected: started")
+
             rangingService = null
             isRangingServiceBound = false
+
+            Log.d(TAG, "rangingServiceConnection.onServiceDisconnected: ended")
         }
     }
     private val monitoringServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, service: IBinder?) {
+            Log.d(TAG, "monitoringServiceConnection.onServiceConnected: started")
+
             val binder = service as? MonitoringService.LocalBinder
             monitoringService = binder?.getService()
 
-            eventChannelMonitoring.setStreamHandler(monitoringService?.monitoringStreamHandler)
+            eventChannelMonitoring.setStreamHandler(monitoringService?.streamHandler)
             isMonitoringServiceBound = true
+
+            Log.d(TAG, "monitoringServiceConnection.onServiceConnected: ended")
         }
 
         override fun onServiceDisconnected(className: ComponentName?) {
+            Log.d(TAG, "monitoringServiceConnection.onServiceDisconnected: started")
+
             monitoringService = null
             isMonitoringServiceBound = false
+
+            Log.d(TAG, "monitoringServiceConnection.onServiceDisconnected: ended")
         }
     }
 
@@ -87,6 +102,8 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     // region Initialization
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
+        Log.d(TAG, "onAttachedToEngine: started")
+
         flutterPluginBinding = binding
 
         channel = MethodChannel(binding.binaryMessenger, METHOD_CHANNEL)
@@ -100,47 +117,68 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             beaconManager.beaconParsers.clear()
             beaconManager.beaconParsers.add(beaconParser)
         }
+
         // for better background service run
         beaconManager.setEnableScheduledScanJobs(false)
 
-        // required to run service on foreground
-        //  setupForegroundService()
-
         val rangingIntent = Intent(binding.applicationContext, RangingService::class.java)
         flutterPluginBinding.applicationContext.bindService(rangingIntent, rangingServiceConnection, Context.BIND_AUTO_CREATE)
-        rangingService?.startService(rangingIntent)
-        // rangingService?.startForegroundService(rangingIntent)
 
         val monitoringIntent = Intent(binding.applicationContext, MonitoringService::class.java)
         flutterPluginBinding.applicationContext.bindService(monitoringIntent, monitoringServiceConnection, Context.BIND_AUTO_CREATE)
-        monitoringService?.startService(monitoringIntent)
-        // monitoringService?.startForegroundService(monitoringIntent)
+
+        // setup the services
+        setupServices(rangingIntent, monitoringIntent)
+        // setupForegroundServices(rangingIntent, monitoringIntent)
+
+        Log.d(TAG, "onAttachedToEngine: ended")
     }
 
-    private fun setupForegroundService() {
-        Log.d(TAG, "Calling enableForegroundServiceScanning")
+    private fun setupServices(rangingIntent: Intent, monitoringIntent: Intent) {
+        Log.d(TAG, "setupServices: started")
+
+        rangingService?.startService(rangingIntent)
+        monitoringService?.startService(monitoringIntent)
+
+        Log.d(TAG, "setupServices: ended")
+    }
+
+    private fun setupForegroundServices(rangingIntent: Intent, monitoringIntent: Intent) {
+        Log.d(TAG, "setupForegroundServices: started")
+
         beaconManager.enableForegroundServiceScanning(createNotification(), 456)
-        Log.d(TAG, "Back from  enableForegroundServiceScanning")
+        rangingService?.startForegroundService(rangingIntent)
+        monitoringService?.startForegroundService(monitoringIntent)
+
+        Log.d(TAG, "setupForegroundServices: ended")
     }
 
     private fun createNotification(): Notification {
-        val notificationTitle = "Beacon Plugin Manager"
-        val notificationContent = "Starting foreground service"
-        val channelId = "beacon_service_channel"
+        Log.d(TAG, "createNotification: started")
+
+        val notificationTitle = "Beacon Service"
+        val notificationContent = "Starting foreground services"
+        val channelId = "beacon_service_notification_channel"
         val notificationManager = flutterPluginBinding.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val channel = NotificationChannel(channelId, "Beacon Service", NotificationManager.IMPORTANCE_LOW)
+        val channel = NotificationChannel(channelId, "Beacon Service", NotificationManager.IMPORTANCE_DEFAULT)
         notificationManager.createNotificationChannel(channel)
 
-        return NotificationCompat.Builder(flutterPluginBinding.applicationContext, channelId)
+        val notification = NotificationCompat.Builder(flutterPluginBinding.applicationContext, channelId)
             .setContentTitle(notificationTitle)
             .setContentText(notificationContent)
             .setSmallIcon(R.drawable.ic_notification)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
+
+        Log.d(TAG, "createNotification: ended")
+
+        return notification
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
+        Log.d(TAG, "onDetachedFromEngine: started")
+
         channel.setMethodCallHandler(null)
         eventChannelRanging.setStreamHandler(null)
         eventChannelMonitoring.setStreamHandler(null)
@@ -150,74 +188,137 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
         beaconManager.removeAllRangeNotifiers()
         beaconManager.removeAllMonitorNotifiers()
+
+        Log.d(TAG, "onDetachedFromEngine: ended")
     }
 
     // region Handle flutter method calls
 
     override fun onMethodCall(call: MethodCall, result: Result) {
+        Log.d(TAG, "onMethodCall: started")
+
         when (call.method) {
             METHOD_INITIALIZE -> initialize(result)
             METHOD_CLOSE -> close(result)
-            METHOD_SET_SCAN_PERIOD -> setScanPeriod(call.argument<Int>("scanPeriod")!!, result)
-            METHOD_SET_BETWEEN_SCAN_PERIOD -> setBetweenScanPeriod(call.argument<Int>("betweenScanPeriod")!!, result)
+            METHOD_SET_SCAN_PERIOD -> setScanPeriod(call.argument<Long>("scanPeriod")!!, result)
+            METHOD_SET_BETWEEN_SCAN_PERIOD -> setBetweenScanPeriod(call.argument<Long>("betweenScanPeriod")!!, result)
             else -> result.notImplemented()
         }
+
+        Log.d(TAG, "onMethodCall: ended")
     }
 
     private fun initialize(result: Result) {
-        Utils.requestPermissions(activityPluginBinding)
+        Log.d(TAG, "initialize: started")
+
+        var success = false
 
         if (isRangingServiceBound && isMonitoringServiceBound) {
-            result.success(true)
+            success = true
         }
-        else {
-            result.error(TAG, "Ranging or monitoring service is not bound", null)
+
+        try {
+            Utils.requestPermissions(activityPluginBinding)
         }
+        catch (e: Exception) {
+            success = false
+
+            Log.e(TAG, "initialize: error: ${e.message}", e)
+        }
+
+        result.success(success)
+
+        Log.d(TAG, "initialize: ended")
     }
 
     private fun close(result: Result) {
-        rangingService?.stopRanging()
-        beaconManager.removeAllRangeNotifiers()
-        monitoringService?.stopMonitoring()
-        beaconManager.removeAllMonitorNotifiers()
-        result.success(true)
+        Log.d(TAG, "close: started")
+
+        var success = true
+
+        try {
+            rangingService?.stopRanging()
+            beaconManager.removeAllRangeNotifiers()
+            monitoringService?.stopMonitoring()
+            beaconManager.removeAllMonitorNotifiers()
+        }
+        catch (e: Exception) {
+            success = false
+
+            Log.e(TAG, "close: error: ${e.message}", e)
+        }
+
+        result.success(success)
+
+        Log.d(TAG, "close: ended")
     }
 
-    private fun setScanPeriod(scanPeriod: Int, result: Result) {
-        beaconManager.foregroundScanPeriod = scanPeriod.toLong()
-        beaconManager.backgroundScanPeriod = scanPeriod.toLong()
+    private fun setScanPeriod(scanPeriod: Long, result: Result) {
+        Log.d(TAG, "setScanPeriod: started")
+
+        beaconManager.foregroundScanPeriod = scanPeriod
+        beaconManager.backgroundScanPeriod = scanPeriod
         updateScanPeriods(beaconManager, result)
+
+        Log.d(TAG, "setScanPeriod: ended")
     }
 
-    private fun setBetweenScanPeriod(betweenScanPeriod: Int, result: Result) {
-        beaconManager.foregroundBetweenScanPeriod = betweenScanPeriod.toLong()
-        beaconManager.backgroundBetweenScanPeriod = betweenScanPeriod.toLong()
+    private fun setBetweenScanPeriod(betweenScanPeriod: Long, result: Result) {
+        Log.d(TAG, "setBetweenScanPeriod: started")
+
+        beaconManager.foregroundBetweenScanPeriod = betweenScanPeriod
+        beaconManager.backgroundBetweenScanPeriod = betweenScanPeriod
         updateScanPeriods(beaconManager, result)
+
+        Log.d(TAG, "setBetweenScanPeriod: ended")
     }
 
     private fun updateScanPeriods(manager: BeaconManager, result: Result) {
+        Log.d(TAG, "updateScanPeriods: started")
+
+        var success = true
+
         try {
             manager.updateScanPeriods()
-            result.success(true)
         }
-        catch (e: RemoteException) {
-            result.success(false)
+        catch (e: Exception) {
+            success = false
+
+            Log.e(TAG, "updateScanPeriods: error: ${e.message}", e)
         }
+
+        result.success(success)
+
+        Log.d(TAG, "updateScanPeriods: ended")
     }
 
     // region Activity stuff
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        Log.d(TAG, "onAttachedToActivity: started")
+
         activityPluginBinding = binding
+
+        Log.d(TAG, "onAttachedToActivity: ended")
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
+        Log.d(TAG, "onDetachedFromActivityForConfigChanges: started")
+
         onDetachedFromActivity()
+
+        Log.d(TAG, "onDetachedFromActivityForConfigChanges: ended")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        Log.d(TAG, "onReattachedToActivityForConfigChanges: started")
+
         onAttachedToActivity(binding)
+
+        Log.d(TAG, "onReattachedToActivityForConfigChanges: ended")
     }
 
-    override fun onDetachedFromActivity() {}
+    override fun onDetachedFromActivity() {
+        Log.d(TAG, "onDetachedFromActivity: triggered")
+    }
 }

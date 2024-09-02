@@ -2,11 +2,8 @@ import 'package:meta/meta.dart';
 
 @immutable
 class IBeaconId {
-  // ignore: constant_identifier_names
   static const String NOT_DEFINED_UUID = '';
-  // ignore: constant_identifier_names
   static const int NOT_DEFINED_MAJOR_ID = -1;
-  // ignore: constant_identifier_names
   static const int NOT_DEFINED_MINOR_ID = -1;
 
   /// Empty = not defined
@@ -26,21 +23,17 @@ class IBeaconId {
 
   bool get isDefined => proximityUUID != NOT_DEFINED_UUID && majorId == NOT_DEFINED_MAJOR_ID && minorId == NOT_DEFINED_MINOR_ID;
 
-  factory IBeaconId.fromJson(dynamic json) {
-    return IBeaconId(
-      proximityUUID: (json['proximityUUID'] as String?) ?? NOT_DEFINED_UUID,
-      majorId: (json['major'] as int?) ?? NOT_DEFINED_MAJOR_ID,
-      minorId: (json['minor'] as int?) ?? NOT_DEFINED_MINOR_ID,
-    );
-  }
+  factory IBeaconId.fromJson(dynamic json) => IBeaconId(
+        proximityUUID: (json['proximityUUID'] as String?) ?? NOT_DEFINED_UUID,
+        majorId: (json['major'] as int?) ?? NOT_DEFINED_MAJOR_ID,
+        minorId: (json['minor'] as int?) ?? NOT_DEFINED_MINOR_ID,
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'proximityUUID': proximityUUID,
-      if (majorId != NOT_DEFINED_MAJOR_ID) 'major': majorId,
-      if (minorId != NOT_DEFINED_MINOR_ID) 'minor': minorId,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'proximityUUID': proximityUUID,
+        if (majorId != NOT_DEFINED_MAJOR_ID) 'major': majorId,
+        if (minorId != NOT_DEFINED_MINOR_ID) 'minor': minorId,
+      };
 
   @override
   bool operator ==(Object other) =>
@@ -55,7 +48,5 @@ class IBeaconId {
   int get hashCode => proximityUUID.hashCode ^ majorId.hashCode ^ minorId.hashCode;
 
   @override
-  String toString() {
-    return 'BeaconId{proximityUUID: $proximityUUID, majorId: $majorId, minorId: $minorId}';
-  }
+  String toString() => 'BeaconId{proximityUUID: $proximityUUID, majorId: $majorId, minorId: $minorId}';
 }

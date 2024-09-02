@@ -1,10 +1,9 @@
 import 'package:meta/meta.dart';
 import 'ibeacon_id.dart';
 
-/// Class for managing for ranging and monitoring region scanning.
+/// Class for managing ranging and monitoring region scanning
 @immutable
 class Region {
-  /// Class for managing for ranging and monitoring region scanning.
   final String identifier;
 
   /// ID of Beacon (UUID, Major, Minor)
@@ -22,21 +21,15 @@ class Region {
   int get hashCode => identifier.hashCode;
 
   @override
-  String toString() {
-    return 'Region{identifier: $identifier, beaconId: $beaconId}';
-  }
+  String toString() => 'Region{identifier: $identifier, beaconId: $beaconId}';
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'identifier': identifier,
-      if (beaconId != null) ...beaconId!.toJson(),
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'identifier': identifier,
+        if (beaconId != null) ...beaconId!.toJson(),
+      };
 
-  factory Region.fromJson(dynamic json) {
-    return Region(
-      identifier: json['identifier'] as String,
-      beaconId: IBeaconId.fromJson(json),
-    );
-  }
+  factory Region.fromJson(dynamic json) => Region(
+        identifier: json['identifier'] as String,
+        beaconId: IBeaconId.fromJson(json),
+      );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'ibeacon_id.dart';
+import 'proximity.dart';
 
 @immutable
 class Beacon {
@@ -18,7 +19,7 @@ class Beacon {
   /// The transmission power of beacon
   final int? txPower;
 
-  /// The accuracy of distance of beacon in meter.
+  /// The accuracy of distance of beacon in meters
   final double accuracy;
 
   const Beacon({
@@ -31,15 +32,15 @@ class Beacon {
   });
 
   factory Beacon.fromJson(dynamic json) => Beacon(
-    id: IBeaconId.fromJson(json),
-    macAddress: json['macAddress'] as String?,
-    rssi: json['rssi'] as int,
-    txPower: json['txPower'] as int?,
-    accuracy: json['accuracy'] as double,
-    proximity: Proximity.values.firstWhere((e) => e.name == json['proximity'], orElse: () => Proximity.unknown),
-  );
+        id: IBeaconId.fromJson(json),
+        macAddress: json['macAddress'] as String?,
+        rssi: json['rssi'] as int,
+        txPower: json['txPower'] as int?,
+        accuracy: json['accuracy'] as double,
+        proximity: Proximity.values.firstWhere((e) => e.name == json['proximity'], orElse: () => Proximity.unknown),
+      );
 
-  /// Serialize current instance object into [Map].
+  /// Serialize current instance object into [Map]
   Map<String, dynamic> toJson() => <String, dynamic>{
         'proximityUUID': id.proximityUUID,
         'major': id.majorId,
@@ -58,10 +59,5 @@ class Beacon {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() {
-    return 'Beacon{id: $id, macAddress: $macAddress, proximity: $proximity, rssi: $rssi, txPower: $txPower, accuracy: $accuracy}';
-  }
+  String toString() => 'Beacon{id: $id, macAddress: $macAddress, proximity: $proximity, rssi: $rssi, txPower: $txPower, accuracy: $accuracy}';
 }
-
-/// Enum for iBeacon-proximity
-enum Proximity { unknown, immediate, near, far }
