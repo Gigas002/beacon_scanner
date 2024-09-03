@@ -143,6 +143,7 @@ class BeaconScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         Log.d(TAG, "setupServices: ended")
     }
 
+    @Suppress("unused")
     private fun setupForegroundServices(rangingIntent: Intent, monitoringIntent: Intent) {
         Log.d(TAG, "setupForegroundServices: started")
 

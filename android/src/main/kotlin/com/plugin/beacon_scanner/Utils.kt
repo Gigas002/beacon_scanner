@@ -96,6 +96,7 @@ internal object Utils {
         return region
     }
 
+    @Suppress("unused")
     fun beaconFromMap(map: Map<*, *>): Beacon {
         return Beacon.Builder().apply {
             (map["proximityUUID"] as? String)?.let { setId1(it) }
