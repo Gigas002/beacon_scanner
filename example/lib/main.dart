@@ -42,20 +42,6 @@ Future<void> _monitorBeacons(MonitoringResult result) async {
   }
 }
 
-Future<void> _rangeBeacons(RangingResult result) async {
-  _logger.info('ranging triggered');
-  if (result.beacons.isNotEmpty) {
-    var beacon = result.beacons[0];
-
-    // this is the number I've set up on my test beacon, don't use in prod
-    var power = beacon.txPower ?? -45;
-    var distance = _calculateDistance(beacon.rssi, power, 4.0);
-
-    _logger.info('ranging: found beacon: $beacon');
-    _logger.info('ranging: distance: $distance');
-  }
-}
-
 Future<void> main() async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
@@ -69,7 +55,6 @@ Future<void> main() async {
   await _beaconScanner.setScanPeriod(const Duration(milliseconds: 1000));
   await _beaconScanner.setBetweenScanPeriod(const Duration(milliseconds: 1000));
   _beaconScanner.monitoring(_regions).listen(_monitorBeacons);
-  _beaconScanner.ranging(_regions).listen(_rangeBeacons);
 
   runApp(const MyApp());
 }
@@ -82,15 +67,35 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  Beacon? _beacon;
+
+  Future<void> _rangeBeacons(RangingResult result) async {
+    _logger.info('ranging triggered');
+    if (result.beacons.isNotEmpty) {
+      setState(() {
+        _beacon = result.beacons[0];
+      });
+
+      // this is the number I've set up on my test beacon, don't use in prod
+      var power = _beacon!.txPower ?? -7;
+      var distance = _calculateDistance(_beacon!.rssi, power, 4.0);
+
+      _logger.info('ranging: found beacon: $_beacon');
+      _logger.info('ranging: distance: $distance');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _beaconScanner.ranging(_regions).listen(_rangeBeacons);
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: const Center(
-          child: Text('Running'),
+        body: Center(
+          child: Text('found beacon: $_beacon'),
         ),
       ),
     );
