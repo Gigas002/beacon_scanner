@@ -24,7 +24,7 @@ double _calculateDistance(int rssi, int power, double n) {
   return distance;
 }
 
-Future<void> _monitorBeacons(MonitoringResult result) async {
+void _monitorBeacons(MonitoringResult result) {
   if (result.monitoringEventType == MonitoringEventType.didDetermineStateForRegion) {
     _logger.info('monitoring triggered');
 
@@ -69,12 +69,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Beacon? _beacon;
 
-  Future<void> _rangeBeacons(RangingResult result) async {
+  void _rangeBeacons(RangingResult result) {
     _logger.info('ranging triggered');
     if (result.beacons.isNotEmpty) {
-      setState(() {
-        _beacon = result.beacons[0];
-      });
+      setState(() => _beacon = result.beacons[0]);
 
       // this is the number I've set up on my test beacon, don't use in prod
       var power = _beacon!.txPower ?? -7;
